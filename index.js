@@ -24,7 +24,7 @@ app.use(fileUpload()); // ✅ Ensure file upload middleware is before routes
 // CORS configuration
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "frontend-ja5h.vercel.app",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
