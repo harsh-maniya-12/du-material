@@ -23,13 +23,14 @@ app.use(fileUpload());
 // ✅ Correct CORS Configuration
 app.use(
   cors({
-    origin: "https://frontend-ja5h.vercel.app",
+    origin: ["https://frontend-ja5h.vercel.app", "http://localhost:5173"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     exposedHeaders: ["Authorization"],
   })
 );
+
 
 // Connect to MongoDB
 mongoose
