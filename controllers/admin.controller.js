@@ -69,7 +69,6 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
-  // Check if email and password are provided
   if (!email || !password) {
     return res.status(400).json({ errors: "Email and password are required" });
   }
@@ -88,16 +87,15 @@ export const login = async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      {
-        id: admin._id,
-      },
-      config.JWT_ADMIN_PASSWORD
-    );
+    const token = jwt.sign({ id: admin._id }, config.JWT_ADMIN_PASSWORD, { expiresIn: "7d" });
 
-    res.cookie("jwt", token);
+    // Set JWT as HTTP-Only Cookie
+    res.cookie("jwt", token, {
+      httpOnly: true,  // Prevents access from JavaScript
+      secure: process.env.NODE_ENV === "production",  // Secure in production
+      sameSite: "None", // Required for cross-site cookies
+    });
 
-    // Respond with success
     res.status(200).json({ message: "Login successful", admin, token });
   } catch (error) {
     console.error("Error during login:", error);
