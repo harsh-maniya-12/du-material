@@ -8,8 +8,7 @@ import path from "path";
 // Import Routes
 import du_material_Route from "./routes/du_material.route.js";
 import userRoute from "./routes/user.route.js";
-import adminRoute from "./routes/admin.route.js";
-import authRoutes from "./routes/admin.route.js";
+import adminRoute from "./routes/admin.route.js"; // ✅ Fixed duplicate import
 
 dotenv.config();
 const app = express();
@@ -18,13 +17,13 @@ const DB_URL = process.env.MONGO_URL;
 
 // Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // ✅ Parse URL-encoded requests
-app.use(fileUpload()); // ✅ Ensure file upload middleware is before routes
+app.use(express.urlencoded({ extended: true }));
+app.use(fileUpload());
 
 // ✅ Correct CORS Configuration
 app.use(
   cors({
-    origin: "https://frontend-ja5h.vercel.app", // ✅ Full URL with HTTPS
+    origin: "https://frontend-ja5h.vercel.app",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -43,8 +42,7 @@ mongoose
 // Define Routes
 app.use("/app/v1/du_material", du_material_Route);
 app.use("/app/v1/user", userRoute);
-app.use("/app/v1/admin", adminRoute);
-app.use("/app/v1", authRoutes);
+app.use("/app/v1/admin", adminRoute); // ✅ Removed duplicate `/app/v1`
 
 // Start Server
 app.listen(port, () => {
