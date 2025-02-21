@@ -37,7 +37,7 @@ app.use(
     },
     credentials: true, // ✅ Required for cookies, tokens, etc.
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-api-key"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Api-Key"],
     exposedHeaders: ["Authorization"],
   })
 );
