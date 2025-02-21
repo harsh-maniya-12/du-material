@@ -252,39 +252,6 @@ export const getDu_material = async (req, res) => {
   }
 };
 
-// Get a single DU material by ID
-export const getByIdDu_material = async (req, res) => {
-  const { du_materialId } = req.params;
 
-  try {
-    const material = await du_material.findById(du_materialId);
-    if (!material) {
-      return res.status(404).json({ error: "Material not found" });
-    }
-    res.status(200).json({ message: "Material fetched successfully", data: material });
-  } catch (error) {
-    console.error("Fetch By ID Error:", error.stack);
-    res.status(500).json({ error: "Error retrieving data", details: error.message });
-  }
-};
 
-// Get a signed URL for a file
-export const getSignedUrl = async (req, res) => {
-  try {
-    const { file: filePath } = req.query;
-    if (!filePath) {
-      return res.status(400).json({ error: "File path is required" });
-    }
 
-    const signedUrl = cloudinary.url(filePath, {
-      sign_url: true,
-      resource_type: "auto",
-      secure: true,
-    });
-
-    res.status(200).json({ message: "Signed URL generated", signedUrl });
-  } catch (error) {
-    console.error("Signed URL Error:", error.stack);
-    res.status(500).json({ error: "Error generating signed URL", details: error.message });
-  }
-};
