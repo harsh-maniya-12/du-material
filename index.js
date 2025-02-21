@@ -23,7 +23,7 @@ app.use(fileUpload());
 // ✅ Correct CORS Configuration
 app.use(
   cors({
-    origin: ["https://dumaterial.vercel.app", "http://localhost:5173"],
+    origin: "*",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
