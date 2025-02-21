@@ -10,7 +10,7 @@ const router = express.Router();
 router.post("/upload", adminMiddleware, CreateDu_material);
 router.put("/update/:du_materialId", adminMiddleware, updateDu_material);
 router.delete("/delete/:du_materialId", adminMiddleware, deleteDu_material);
-router.get("/getSignedUrl", getDu_material);
+router.get("/get", getDu_material);
 router.get("/get/:du_materialId", getByIdDu_material);
 
 
