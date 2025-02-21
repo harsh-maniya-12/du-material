@@ -1,10 +1,12 @@
 // du_material.controller.js
-import cloudinary from "../cloudinaryConfig.js"; // Ensure path is correct
-import { du_material } from "../models/du_material.model.js"; // MongoDB model
+import cloudinary from "../cloudinaryConfig.js";
+import { du_material } from "../models/du_material.model.js";
 
-// Create a new DU material with file uploads and save to MongoDB
 export const CreateDu_material = async (req, res) => {
   try {
+    console.log("Request Files:", req.files); // Log incoming files
+    console.log("Request Body:", req.body); // Log incoming text fields
+
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).json({ error: "No files uploaded" });
     }
@@ -23,7 +25,8 @@ export const CreateDu_material = async (req, res) => {
 
     for (const field of fileFields) {
       if (req.files[field]) {
-        const file = Array.isArray(req.files[field]) ? req.files[field][0] : req.files[field]; // Handle single file
+        const file = Array.isArray(req.files[field]) ? req.files[field][0] : req.files[field];
+        console.log(`Uploading ${field}:`, file.tempFilePath); // Log file path
         const result = await cloudinary.uploader.upload(file.tempFilePath, {
           folder: "du_material",
           resource_type: "auto",
@@ -64,184 +67,11 @@ export const CreateDu_material = async (req, res) => {
       data: savedMaterial,
     });
   } catch (error) {
-    console.error("Upload Error:", error);
-    res.status(500).json({ error: "Failed to upload materials", details: error.message });
-  }
-};
-
-// Update an existing DU material
-export const updateDu_material = async (req, res) => {
-  const { du_materialId } = req.params;
-
-  try {
-    const uploadResults = {};
-    if (req.files && Object.keys(req.files).length > 0) {
-      const fileFields = [
-        "ppt_upload",
-        "lab_upload",
-        "note_upload",
-        "assignment_upload",
-        "uni_midPaper_upload",
-        "uni_finalPaper_upload",
-        "gtu_paper_upload",
-      ];
-
-      for (const field of fileFields) {
-        if (req.files[field]) {
-          const file = Array.isArray(req.files[field]) ? req.files[field][0] : req.files[field];
-          const result = await cloudinary.uploader.upload(file.tempFilePath, {
-            folder: "du_material",
-            resource_type: "auto",
-          });
-          uploadResults[field] = result.secure_url;
-        }
-      }
-    }
-
-    const updatedData = {
-      ...req.body,
-      ...uploadResults,
-    };
-
-    const updatedMaterial = await du_material.findByIdAndUpdate(
-      du_materialId,
-      updatedData,
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedMaterial) {
-      return res.status(404).json({ error: "Material not found" });
-    }
-
-    res.status(200).json({ message: "Update successful", data: updatedMaterial });
-  } catch (error) {
-    console.error("Update Error:", error);
-    res.status(500).json({ error: "Error updating material", details: error.message });
-  }
-};
-
-// Delete a DU material
-export const deleteDu_material = async (req, res) => {
-  const { du_materialId } = req.params;
-
-  try {
-    const material = await du_material.findById(du_materialId);
-    if (!material) {
-      return res.status(404).json({ error: "Material not found" });
-    }
-
-    const fileFields = [
-      "ppt_upload",
-      "lab_upload",
-      "note_upload",
-      "assignment_upload",
-      "uni_midPaper_upload",
-      "uni_finalPaper_upload",
-      "gtu_paper_upload",
-    ];
-
-    for (const field of fileFields) {
-      if (material[field]) {
-        const publicId = material[field].split('/').pop().split('.')[0];
-        await cloudinary.uploader.destroy(`du_material/${publicId}`).catch(err => {
-          console.error(`Failed to delete ${field} from Cloudinary:`, err);
-        });
-      }
-    }
-
-    await du_material.findByIdAndDelete(du_materialId);
-
-    res.status(200).json({ message: "Material deleted successfully" });
-  } catch (error) {
-    console.error("Delete Error:", error);
-    res.status(500).json({ error: "Error deleting material", details: error.message });
-  }
-};
-
-// Download a DU material file
-export const downloadDuMaterial = async (req, res) => {
-  const { du_materialId } = req.params;
-  const { file: fileField } = req.query;
-
-  try {
-    const material = await du_material.findById(du_materialId);
-    if (!material) {
-      return res.status(404).json({ error: "Material not found" });
-    }
-
-    const fileFields = [
-      "ppt_upload",
-      "lab_upload",
-      "note_upload",
-      "assignment_upload",
-      "uni_midPaper_upload",
-      "uni_finalPaper_upload",
-      "gtu_paper_upload",
-    ];
-
-    if (!fileFields.includes(fileField)) {
-      return res.status(400).json({ error: "Invalid file type requested" });
-    }
-
-    const downloadUrl = material[fileField];
-    if (!downloadUrl) {
-      return res.status(404).json({ error: "File not found" });
-    }
-
-    res.redirect(downloadUrl);
-  } catch (error) {
-    console.error("Download Error:", error);
-    res.status(500).json({ error: "Error downloading material", details: error.message });
-  }
-};
-
-// Get all DU materials
-export const getDu_material = async (req, res) => {
-  try {
-    const duMaterials = await du_material.find({});
-    if (!duMaterials || duMaterials.length === 0) {
-      return res.status(404).json({ error: "No materials found" });
-    }
-    res.status(200).json({ message: "Materials fetched successfully", data: duMaterials });
-  } catch (error) {
-    console.error("Fetch Error:", error);
-    res.status(500).json({ error: "Error fetching data", details: error.message });
-  }
-};
-
-// Get a single DU material by ID
-export const getByIdDu_material = async (req, res) => {
-  const { du_materialId } = req.params;
-
-  try {
-    const material = await du_material.findById(du_materialId);
-    if (!material) {
-      return res.status(404).json({ error: "Material not found" });
-    }
-    res.status(200).json({ message: "Material fetched successfully", data: material });
-  } catch (error) {
-    console.error("Fetch By ID Error:", error);
-    res.status(500).json({ error: "Error retrieving data", details: error.message });
-  }
-};
-
-// Get a signed URL for a file
-export const getSignedUrl = async (req, res) => {
-  try {
-    const { file: filePath } = req.query;
-    if (!filePath) {
-      return res.status(400).json({ error: "File path is required" });
-    }
-
-    const signedUrl = cloudinary.url(filePath, {
-      sign_url: true,
-      resource_type: "auto",
-      secure: true,
+    console.error("Full Upload Error:", error.stack); // Log full error stack
+    res.status(500).json({
+      error: "Failed to upload materials",
+      details: error.message || "Unknown error",
+      stack: error.stack, // Include stack trace for debugging
     });
-
-    res.status(200).json({ message: "Signed URL generated", signedUrl });
-  } catch (error) {
-    console.error("Signed URL Error:", error);
-    res.status(500).json({ error: "Error generating signed URL", details: error.message });
   }
 };
