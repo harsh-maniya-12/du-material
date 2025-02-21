@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Define routes with the correct path
 router.post("/admin/signup", signup);
-router.post("/admin/login", login);
+router.post("/login", login);
 router.get("/admin/logout", logout);
 
 export default router;
