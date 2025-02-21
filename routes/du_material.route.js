@@ -1,6 +1,6 @@
 // routes/du_material.route.js
 import express from "express";
-import { CreateDu_material, updateDu_material, deleteDu_material, getDu_material, getByIdDu_material, downloadDuMaterial, getSignedUrl } from "../controllers/du_material.controller.js"; // Import getSignedUrl correctly
+import { CreateDu_material, updateDu_material, deleteDu_material, getDu_material, getByIdDu_material, downloadDuMaterial } from "../controllers/du_material.controller.js"; // Import getSignedUrl correctly
 import adminMiddleware from "../middleware/admin.mid.js";
 
 const router = express.Router();
