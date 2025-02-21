@@ -1,12 +1,11 @@
 // du_material.controller.js
-import cloudinary from "../cloudinaryConfig.js"; // Single import for Cloudinary
+import cloudinary from "../cloudinaryConfig.js"; // Ensure path is correct
 import { du_material } from "../models/du_material.model.js"; // MongoDB model
 
 // Create a new DU material with file uploads and save to MongoDB
 export const CreateDu_material = async (req, res) => {
   try {
-    // Check if files are present
-    if (!req.files) {
+    if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).json({ error: "No files uploaded" });
     }
 
@@ -22,19 +21,17 @@ export const CreateDu_material = async (req, res) => {
 
     const uploadResults = {};
 
-    // Upload each file to Cloudinary if it exists
     for (const field of fileFields) {
       if (req.files[field]) {
-        const file = req.files[field];
+        const file = Array.isArray(req.files[field]) ? req.files[field][0] : req.files[field]; // Handle single file
         const result = await cloudinary.uploader.upload(file.tempFilePath, {
-          folder: "du_material", // Organize files in a folder on Cloudinary
-          resource_type: "auto", // Automatically detect file type (e.g., image, pdf)
+          folder: "du_material",
+          resource_type: "auto",
         });
         uploadResults[field] = result.secure_url;
       }
     }
 
-    // Extract text fields from req.body
     const textFields = {
       ch_number: req.body.ch_number || "",
       ch_name: req.body.ch_name || "",
@@ -55,13 +52,11 @@ export const CreateDu_material = async (req, res) => {
       subject: req.body.subject || "",
     };
 
-    // Combine text fields and uploaded file URLs into a new document
     const newMaterial = new du_material({
       ...textFields,
       ...uploadResults,
     });
 
-    // Save to MongoDB
     const savedMaterial = await newMaterial.save();
 
     res.status(201).json({
@@ -79,9 +74,8 @@ export const updateDu_material = async (req, res) => {
   const { du_materialId } = req.params;
 
   try {
-    // Check if files are present for updating
     const uploadResults = {};
-    if (req.files) {
+    if (req.files && Object.keys(req.files).length > 0) {
       const fileFields = [
         "ppt_upload",
         "lab_upload",
@@ -94,7 +88,7 @@ export const updateDu_material = async (req, res) => {
 
       for (const field of fileFields) {
         if (req.files[field]) {
-          const file = req.files[field];
+          const file = Array.isArray(req.files[field]) ? req.files[field][0] : req.files[field];
           const result = await cloudinary.uploader.upload(file.tempFilePath, {
             folder: "du_material",
             resource_type: "auto",
@@ -104,7 +98,6 @@ export const updateDu_material = async (req, res) => {
       }
     }
 
-    // Combine body data with new file URLs (if any)
     const updatedData = {
       ...req.body,
       ...uploadResults,
@@ -137,7 +130,6 @@ export const deleteDu_material = async (req, res) => {
       return res.status(404).json({ error: "Material not found" });
     }
 
-    // Optionally delete files from Cloudinary (if needed)
     const fileFields = [
       "ppt_upload",
       "lab_upload",
@@ -150,8 +142,10 @@ export const deleteDu_material = async (req, res) => {
 
     for (const field of fileFields) {
       if (material[field]) {
-        const publicId = material[field].split('/').pop().split('.')[0]; // Extract public ID from URL
-        await cloudinary.uploader.destroy(`du_material/${publicId}`);
+        const publicId = material[field].split('/').pop().split('.')[0];
+        await cloudinary.uploader.destroy(`du_material/${publicId}`).catch(err => {
+          console.error(`Failed to delete ${field} from Cloudinary:`, err);
+        });
       }
     }
 
@@ -205,11 +199,9 @@ export const downloadDuMaterial = async (req, res) => {
 export const getDu_material = async (req, res) => {
   try {
     const duMaterials = await du_material.find({});
-    
     if (!duMaterials || duMaterials.length === 0) {
       return res.status(404).json({ error: "No materials found" });
     }
-    
     res.status(200).json({ message: "Materials fetched successfully", data: duMaterials });
   } catch (error) {
     console.error("Fetch Error:", error);
@@ -223,11 +215,9 @@ export const getByIdDu_material = async (req, res) => {
 
   try {
     const material = await du_material.findById(du_materialId);
-
     if (!material) {
       return res.status(404).json({ error: "Material not found" });
     }
-
     res.status(200).json({ message: "Material fetched successfully", data: material });
   } catch (error) {
     console.error("Fetch By ID Error:", error);
@@ -235,11 +225,10 @@ export const getByIdDu_material = async (req, res) => {
   }
 };
 
-// Get a signed URL for a file (optional utility)
+// Get a signed URL for a file
 export const getSignedUrl = async (req, res) => {
   try {
     const { file: filePath } = req.query;
-
     if (!filePath) {
       return res.status(400).json({ error: "File path is required" });
     }
