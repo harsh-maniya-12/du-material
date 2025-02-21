@@ -21,15 +21,34 @@ app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload());
 
 // ✅ Correct CORS Configuration
+const allowedOrigins = [
+  "https://dumaterial.vercel.app", // ✅ Your frontend URL
+  "http://localhost:5173", // ✅ For local development
+];
+
 app.use(
   cors({
-    origin: ["https://dumaterial.vercel.app", "http://localhost:5173"],
-    credentials: true,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, origin); // ✅ Allow requests from these origins
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // ✅ Required for cookies, tokens, etc.
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-api-key"],
     exposedHeaders: ["Authorization"],
   })
 );
+
+app.options("*", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "https://dumaterial.vercel.app");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-api-key");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.status(200).end();
+});
 
 
 // Connect to MongoDB
