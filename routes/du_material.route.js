@@ -19,6 +19,6 @@ router.get("/get", getDu_material);
 router.get("/download/:du_materialId", downloadDuMaterial); // This route handles download requests
 
 // Add the signed URL route
-router.get('/get-signed-url', getSignedUrl); // Fixed import
+//router.get('/get-signed-url', getSignedUrl); // Fixed import
 
 export default router;
