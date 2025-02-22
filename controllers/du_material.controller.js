@@ -242,12 +242,14 @@ export const downloadDuMaterial = async (req, res) => {
 export const getDu_material = async (req, res) => {
   try {
     const duMaterials = await du_material.find({});
+    
     if (!duMaterials || duMaterials.length === 0) {
       return res.status(404).json({ error: "No materials found" });
     }
-    res.status(200).json({ message: "Materials fetched successfully", data: duMaterials });
+    
+    // Respond with the duMaterials array
+    res.status(200).json({ duMaterials });
   } catch (error) {
-    console.error("Fetch Error:", error.stack);
     res.status(500).json({ error: "Error fetching data", details: error.message });
   }
 };
