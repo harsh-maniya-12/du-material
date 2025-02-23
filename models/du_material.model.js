@@ -57,3 +57,4 @@ const du_materialSchema = new mongoose.Schema({
 });
 
 export const du_material = mongoose.model("du_material", du_materialSchema);
+
